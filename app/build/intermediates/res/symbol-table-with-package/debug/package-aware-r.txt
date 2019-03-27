@@ -722,10 +722,8 @@ id italic
 id left
 id line1
 id line3
-id listDevices
 id listMode
 id list_item
-id listen
 id listview
 id message
 id middle
@@ -776,7 +774,6 @@ id src_in
 id src_over
 id standard
 id start
-id status
 id submenuarrow
 id submit_area
 id tabMode

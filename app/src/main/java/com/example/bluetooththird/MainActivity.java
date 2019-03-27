@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
@@ -16,6 +17,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,16 +46,17 @@ public class MainActivity extends AppCompatActivity {
     static final int STATE_CONNECTION_FAILED = 4;
     static final int STATE_MESSAGE_RECEIVED = 5;
 
-    int REQUEST_ENABLE_BLUETOOTH=1;
+    static int REQUEST_ENABLE_BLUETOOTH=1;
 
 
     private static final String APP_NAME = "BTChat";
     private static final UUID MY_UUID = UUID.fromString("8ce255c0-224a-11e0-ac64-0803450c9a66");
-
+    Context context;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        context= getApplicationContext();
 
         findViewByIdes();
         bluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
@@ -62,12 +65,59 @@ public class MainActivity extends AppCompatActivity {
         {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent,REQUEST_ENABLE_BLUETOOTH);
+        } else {
+            implementFunctions();
         }
 
         implementListeners();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch(requestCode) {
+            case 1:
+                switch (resultCode) {
+                    case 0:
+                        CharSequence text = "Bluetooth aktivieren und App neustarten!";
+                        Toast toast = Toast.makeText(context, text, Toast.LENGTH_LONG);
+                        toast.show();
+                        break;
+                    default:
+
+                        try {
+                            implementFunctions();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                }
+        }
+    }
+    private void implementFunctions(){
+
+            Set<BluetoothDevice> bt=bluetoothAdapter.getBondedDevices();
+            String[] strings=new String[bt.size()];
+            btArray= new BluetoothDevice[bt.size()];
+            int index=0;
+
+            if(bt.size()>0)
+            {
+                for(BluetoothDevice device : bt)
+                {
+                    btArray[index] = device;
+                    strings[index] = device.getName();
+                    index++;
+                }
+                ArrayAdapter<String> arrayAdapter= new ArrayAdapter<String>(getApplicationContext(),android.R.layout.simple_list_item_1, strings);
+                listView.setAdapter(arrayAdapter);
+            }
+        ServerClass serverClass= new ServerClass();
+
+        serverClass.start();
+
+    }
     private void implementListeners() {
+/*
         listDevices.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -89,7 +139,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+*/
 
+/*
         listen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -97,14 +149,14 @@ public class MainActivity extends AppCompatActivity {
                 serverClass.start();
             }
         });
+*/
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int i, long l) {
                 ClientClass clientClass= new ClientClass(btArray[i]);
                 clientClass.start();
-
-                status.setText("Connecting");
+                listView.setAdapter(null);
             }
         });
 
@@ -118,6 +170,15 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    Handler deleteList = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            listView.setAdapter(null);
+            return true;
+
+        }
+    });
+
     Handler handler= new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
@@ -125,16 +186,12 @@ public class MainActivity extends AppCompatActivity {
             switch(msg.what)
             {
                 case STATE_LISTENING:
-                    status.setText("Listening");
                     break;
                 case STATE_CONNECTING:
-                    status.setText("Connecting");
                     break;
                 case STATE_CONNECTED:
-                    status.setText("Connected");
                     break;
                 case STATE_CONNECTION_FAILED:
-                    status.setText("Connection Failed");
                     break;
                 case STATE_MESSAGE_RECEIVED:
                     byte[] readBuffer= (byte[]) msg.obj;
@@ -147,13 +204,11 @@ public class MainActivity extends AppCompatActivity {
     });
 
     private void findViewByIdes() {
-        listen=(Button) findViewById(R.id.listen);
         send=(Button) findViewById(R.id.send);
         listView=(ListView) findViewById(R.id.listview);
         msg_box=(TextView) findViewById(R.id.msg);
-        status=(TextView) findViewById(R.id.status);
         writeMsg=(EditText) findViewById(R.id.writemsg);
-        listDevices=(Button) findViewById(R.id.listDevices);
+
     }
 
     private class ServerClass extends Thread
@@ -163,8 +218,9 @@ public class MainActivity extends AppCompatActivity {
         public ServerClass() {
             try {
                 serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, MY_UUID);
+
             } catch (IOException e) {
-                e.printStackTrace();
+
             }
         }
 
@@ -194,6 +250,9 @@ public class MainActivity extends AppCompatActivity {
 
                        sendReceive=new SendReceive(socket);
                        sendReceive.start();
+                       Message delete = Message.obtain();
+                       delete.what= STATE_CONNECTED;
+                       deleteList.sendMessage(delete);
                        break;
                    }
             }
