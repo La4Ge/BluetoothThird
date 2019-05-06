@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
@@ -68,8 +69,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             implementFunctions();
         }
-
         implementListeners();
+
     }
 
     @Override
@@ -81,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
                         CharSequence text = "Bluetooth aktivieren und App neustarten!";
                         Toast toast = Toast.makeText(context, text, Toast.LENGTH_LONG);
                         toast.show();
+                        finish();
                         break;
                     default:
 
@@ -253,8 +255,17 @@ public class MainActivity extends AppCompatActivity {
                        Message delete = Message.obtain();
                        delete.what= STATE_CONNECTED;
                        deleteList.sendMessage(delete);
+                       cancel();
                        break;
                    }
+            }
+        }
+
+        public void cancel() {
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -284,13 +295,19 @@ public class MainActivity extends AppCompatActivity {
 
                 sendReceive= new SendReceive(socket);
                 sendReceive.start();
-
             } catch (IOException e) {
                 e.printStackTrace();
 
                 Message message=Message.obtain();
                 message.what=STATE_CONNECTION_FAILED;
                 handler.sendMessage(message);
+            }
+        }
+        public void cancel() {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
