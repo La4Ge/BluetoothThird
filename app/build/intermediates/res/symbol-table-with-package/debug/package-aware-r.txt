@@ -681,6 +681,7 @@ id beginning
 id blocking
 id bottom
 id buttonPanel
+id callActivity
 id center
 id center_horizontal
 id center_vertical
@@ -790,6 +791,8 @@ id titleDividerNoCustom
 id title_template
 id top
 id topPanel
+id tvDeviceAddress
+id tvDeviceName
 id uniform
 id up
 id useLogo
@@ -831,12 +834,14 @@ layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
 layout activity_main
+layout device_adapter_view
 layout notification_action
 layout notification_action_tombstone
 layout notification_template_custom_big
 layout notification_template_icon_group
 layout notification_template_part_chronometer
 layout notification_template_part_time
+layout second_window
 layout select_dialog_item_material
 layout select_dialog_multichoice_material
 layout select_dialog_singlechoice_material
