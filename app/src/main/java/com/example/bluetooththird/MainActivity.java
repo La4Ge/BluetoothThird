@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
                         Toast toast = Toast.makeText(context, text, Toast.LENGTH_LONG);
                         toast.show();
                         finish();
-                        break;
+                        return;
                     default:
 
                         try {
@@ -171,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         break;
                 }
+                break;
             case 60:
                 switch(resultCode){
                     case 0:
