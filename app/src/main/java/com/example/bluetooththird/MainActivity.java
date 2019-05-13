@@ -9,12 +9,18 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -24,24 +30,30 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button listen,send,listDevices;
+    Button send;
     ListView listView;
-    TextView msg_box,status;
-    EditText writeMsg;
+    TextView msg_box;
 
     BluetoothAdapter bluetoothAdapter;
     BluetoothDevice[] btArray;
 
     SendReceive sendReceive;
 
+    Date currentTime;
     static final int STATE_LISTENING = 1;
     static final int STATE_CONNECTING = 2;
     static final int STATE_CONNECTED = 3;
@@ -58,26 +70,32 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
+
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle extras = getIntent().getExtras();
         if(extras !=null)
         {
-            messageFromBluetooth="hallo";
             if(extras.getString("message")!= null){
                 String msg=extras.getString("message");
                 sendReceive.write(msg.getBytes());
                 finish();
                 return;
             }
-            else if(extras.getString("getMessage")!= null){
+ /*           else if(extras.getString("getMessage")!= null){
                 Intent intent = new Intent();
                 intent.putExtra("answer", messageFromBluetooth);
                 setResult(RESULT_OK, intent);
                 finish();
                 return;
-            }
+            }*/
         }
 
         setContentView(R.layout.activity_main);
@@ -96,8 +114,8 @@ public class MainActivity extends AppCompatActivity {
             requestDiscover();
         }
 
-
         implementListeners();
+
 
     }
 
@@ -142,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
                 }
                 ArrayAdapter<String> mBTDevices = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, deviceNames);
 
-                //     DeviceListAdapter deviceListAdapter = new DeviceListAdapter(context, R.layout.device_adapter_view, mBTDevices);
                 listView.setAdapter(mBTDevices);
             }
             else if(action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)){
@@ -249,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        send.setOnClickListener(new View.OnClickListener() {
+    /*    send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(sendReceive!=null) {
@@ -260,17 +277,10 @@ public class MainActivity extends AppCompatActivity {
                     String text= "nicht verbunden";
                     Toast toast = Toast.makeText(context, text, Toast.LENGTH_LONG);
                     toast.show();
-                    try {
-                        unregisterReceiver(mBroadcastDeviceReceiver);
-
-                    } catch (IllegalArgumentException e){
-                        e.printStackTrace();
-                    }
-                    bluetoothAdapter.cancelDiscovery();
                 }
 
             }
-        });
+        });*/
     }
 
     Handler deleteList = new Handler(new Handler.Callback() {
@@ -297,17 +307,23 @@ public class MainActivity extends AppCompatActivity {
                     text = "Verbunden";
                     toast = Toast.makeText(context, text, Toast.LENGTH_LONG);
                     toast.show();
+
+                    Intent intent = new Intent(MainActivity.this, SecondActivity.class);
+                    startActivity(intent);
                     break;
                 case STATE_CONNECTION_FAILED:
                     text = "Verbindung fehlgeschlagen, versuchen Sie es mit einem Neustart!";
                     toast = Toast.makeText(context, text, Toast.LENGTH_LONG);
                     toast.show();
+
                     break;
                 case STATE_MESSAGE_RECEIVED:
                     byte[] readBuffer= (byte[]) msg.obj;
                     String tempMsg= new String(readBuffer, 0, msg.arg1);
-                    msg_box.setText(tempMsg);
-                    messageFromBluetooth=tempMsg;
+                    Intent intent3 = new Intent(MainActivity.this, SecondActivity.class);
+                    intent3.putExtra("getMessage", tempMsg);
+                    startActivity(intent3);
+
                     break;
             }
             return true;
@@ -315,10 +331,7 @@ public class MainActivity extends AppCompatActivity {
     });
 
     private void findViewByIdes() {
-        send=(Button) findViewById(R.id.send);
         listView=(ListView) findViewById(R.id.listview);
-        msg_box=(TextView) findViewById(R.id.msg);
-        writeMsg=(EditText) findViewById(R.id.writemsg);
 
     }
 
@@ -484,5 +497,37 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+
+
     }
+    //
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

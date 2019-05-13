@@ -1,4 +1,4 @@
-#Thu May 09 08:21:14 CEST 2019
+#Mon May 13 16:19:42 CEST 2019
 base.0=C\:\\Users\\la4ge6\\Android_pro\\BluetoothThird-20190321T125344Z-001\\BluetoothThird\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\out
 path.1=classes.dex
 renamed.1=classes2.dex
